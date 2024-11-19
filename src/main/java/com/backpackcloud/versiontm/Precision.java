@@ -40,6 +40,6 @@ public enum Precision {
   /// Indicates that only the major and minor segments are used.
   MINOR,
   /// Indicates that all segments are used.
-  MICRO;
+  MICRO
 
 }
