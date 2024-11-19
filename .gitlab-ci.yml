@@ -1,0 +1,47 @@
+stages:
+  - compile
+  - test
+  - build
+  - release
+
+compile:
+  stage: compile
+  artifacts:
+    paths:
+      - target/*
+  script:
+    - compile-project
+
+test:
+  stage: test
+  artifacts:
+    paths:
+      - target/*
+  dependencies:
+    - compile
+  script:
+    - test-project
+
+package:
+  stage: build
+  artifacts:
+    paths:
+      - target/*
+  dependencies:
+    - test
+  script:
+    - package-project
+
+deploy:downstream:
+  stage: release
+  script:
+    - deploy-project downstream
+  dependencies:
+    - package
+
+deploy:upstream:
+  stage: release
+  script:
+    - deploy-project upstream
+  dependencies:
+    - package
