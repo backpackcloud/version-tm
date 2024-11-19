@@ -13,7 +13,7 @@ could work fine, I wanted to use a simplistic approach.
 Version™ works by allocating a `long` value for all the three segments plus one flag per each. By mashing everything
 together into a single number, operations like searching, comparing and indexing become much simpler.
 
-The segments are store using the following structure:
+The segments are stored using the following structure:
 
 ```
 0[major segment: 20 bits][flag: 1 bit][minor segment: 20 bits][flag: 1 bit][micro segment: 20 bits][flag: 1 bit]
