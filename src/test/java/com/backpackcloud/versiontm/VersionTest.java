@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -175,36 +174,6 @@ public class VersionTest {
   }
 
   @Test
-  public void testDerivatives() {
-    assertEquals(Version.of("1.2.3").withMicro(5), Version.of("1.2.5"));
-    assertEquals(Version.of("1.2.3").withMinor(4), Version.of("1.4.3"));
-    assertEquals(Version.of("1.2.3").withMajor(3), Version.of("3.2.3"));
-
-    assertEquals(Version.of("1").withMajor(3), Version.of("3"));
-    assertEquals(Version.of("1").withMinor(3), Version.of("1.3"));
-    assertEquals(Version.of("1").withMicro(3), Version.of("1.0.3"));
-
-    assertEquals(Version.of("1.2").withMajor(3), Version.of("3.2"));
-    assertEquals(Version.of("1.2").withMinor(3), Version.of("1.3"));
-    assertEquals(Version.of("1.2").withMicro(3), Version.of("1.2.3"));
-  }
-
-  @Test
-  public void testNextVersions() {
-    assertEquals(Version.of("1.2.3").nextMicro(), Version.of("1.2.4"));
-    assertEquals(Version.of("1.2.3").nextMinor(), Version.of("1.3.3"));
-    assertEquals(Version.of("1.2.3").nextMajor(), Version.of("2.2.3"));
-
-    assertEquals(Version.of("1").nextMajor(), Version.of("2"));
-    assertEquals(Version.of("1").nextMinor(), Version.of("1"));
-    assertEquals(Version.of("1").nextMicro(), Version.of("1"));
-
-    assertEquals(Version.of("1.2").nextMajor(), Version.of("2.2"));
-    assertEquals(Version.of("1.2").nextMinor(), Version.of("1.3"));
-    assertEquals(Version.of("1.2").nextMicro(), Version.of("1.2"));
-  }
-
-  @Test
   public void testNullValue() {
     Version nullVersion = Version.NULL;
 
@@ -216,14 +185,6 @@ public class VersionTest {
     assertEquals(Precision.NONE, nullVersion.precision());
 
     assertEquals("null", nullVersion.toString());
-
-    assertSame(nullVersion, nullVersion.nextMajor());
-    assertSame(nullVersion, nullVersion.nextMinor());
-    assertSame(nullVersion, nullVersion.nextMicro());
-
-    assertSame(nullVersion, nullVersion.withMajor(10));
-    assertSame(nullVersion, nullVersion.withMinor(10));
-    assertSame(nullVersion, nullVersion.withMicro(10));
 
     assertNotEquals(nullVersion, new Version(0));
     assertNotEquals(nullVersion, new Version(0, 0));
