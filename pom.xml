@@ -32,6 +32,14 @@
   <artifactId>version-tm</artifactId>
   <version>1.0.0</version>
 
+  <name>version-tm</name>
+
+  <description>
+    Version™ is a lightweight implementation of a version schema that uses three segments: major, minor and micro.
+  </description>
+
+  <url>https://github.com/backpackcloud/version-tm</url>
+
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
