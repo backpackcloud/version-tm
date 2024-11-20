@@ -106,6 +106,12 @@ b = Version.of("2.0", Precision.MICRO);
 constraint = Constraints.create(">= 2.0.0");
 System.out.println(constraint.test(b)); // now it's also true :)
 ```
+
+You can get the bits from the Maven Central using the following:
+
+- `groupId`: com.backpackcloud
+- `artifactId`: version-tm
+
 ## Why UTC?
 
 Why should you Use This Crap™? Well... I don't know exactly why. Maybe you need something really light that can get the
