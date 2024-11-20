@@ -77,7 +77,7 @@ public class Version implements Comparable<Version> {
   /// @see #Version(int, int, int) Version
   public Version(long value) {
     if (value < 0) {
-      throw new IllegalArgumentException("Invalid value");
+      throw new IllegalArgumentException("Invalid value: " + value + " < 0");
     }
 
     boolean knownMicro = (value & 0b0_000000000000000000000_000000000000000000000_000000000000000000001L) ==
@@ -117,9 +117,7 @@ public class Version implements Comparable<Version> {
     this(((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR | (long) micro << SEGMENT_MICRO) |
       0b0_000000000000000000001_000000000000000000001_000000000000000000001L);
 
-    if (major > MAX || minor > MAX || micro > MAX) {
-      throw new IllegalArgumentException("Invalid value");
-    }
+    checkSegments(major, minor, micro);
   }
 
   /// Creates a version object with only the first two segments.
@@ -130,9 +128,7 @@ public class Version implements Comparable<Version> {
     this(((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR) |
       0b0_000000000000000000001_000000000000000000001_000000000000000000000L);
 
-    if (major > MAX || minor > MAX) {
-      throw new IllegalArgumentException("Invalid value");
-    }
+    checkSegments(major, minor, 0);
   }
 
   /// Creates a version object with only the first segment.
@@ -142,8 +138,18 @@ public class Version implements Comparable<Version> {
     this(((long) major << SEGMENT_MAJOR) |
       0b0_000000000000000000001_000000000000000000000_000000000000000000000L);
 
+    checkSegments(major, 0, 0);
+  }
+
+  private void checkSegments(int major, int minor, int micro) {
     if (major > MAX) {
-      throw new IllegalArgumentException("Invalid value");
+      throw new IllegalArgumentException("major segment overflow: " + major);
+    }
+    if (minor > MAX) {
+      throw new IllegalArgumentException("minor segment overflow: " + minor);
+    }
+    if (micro > MAX) {
+      throw new IllegalArgumentException("micro segment overflow: " + micro);
     }
   }
 
@@ -230,7 +236,7 @@ public class Version implements Comparable<Version> {
   /// Tries to parse the given value in the format <code>major.minor.micro</code>. Returns [#NULL]
   /// if it's not possible to parse the input.
   ///
-  /// @param value the value to parse
+  /// @param value             the value to parse
   /// @param enforcedPrecision the precision to enforce by filling missing segments with zeroes
   /// @return the Version representation of the given string, or [#NULL] if not possible.
   /// @see #of(String)
@@ -239,21 +245,31 @@ public class Version implements Comparable<Version> {
       return NULL;
     }
 
-    String[] tokens = value.split("\\.", 3);
+    String[] tokens = value.trim().split("\\.", 3);
     int precision = enforcedPrecision == Precision.NONE ? tokens.length : enforcedPrecision.segments();
 
     int[] values = new int[3];
 
     for (int i = 0; i < values.length && i < tokens.length; i++) {
-      String segment = tokens[i].replaceAll("\\D.*", "");
+      // I don't care about anything that's not a digit
+      String segment = tokens[i]
+        // first, remove any non-digits from the beginning
+        .replaceAll("^\\D", "")
+        // after that, remove anything after the first non-digit until the end
+        .replaceAll("\\D.*$", "");
+
       if (!segment.isBlank()) {
         try {
           values[i] = Integer.parseInt(segment);
         } catch (NumberFormatException e) {
-          throw new IllegalArgumentException("Invalid input", e);
+          throw new IllegalArgumentException("Invalid input: '" + value + "'", e);
         }
+      } else if (i > 0 && i == tokens.length - 1) {
+        // if this is the last token, and it's invalid
+        // let's lower the precision and let it pass
+        precision--;
       } else {
-        throw new IllegalArgumentException("Invalid input");
+        throw new IllegalArgumentException("Invalid input: '" + value + "'");
       }
     }
 
@@ -261,27 +277,12 @@ public class Version implements Comparable<Version> {
   }
 
   private static Version create(int precision, int[] values) {
-    final Version result;
-
-    if (precision == 3) {
-      result = new Version(
-        values[0],
-        values[1],
-        values[2]
-      );
-    } else if (precision == 2) {
-      result = new Version(
-        values[0],
-        values[1]
-      );
-    } else if (precision == 1) {
-      result = new Version(
-        values[0]
-      );
-    } else {
-      throw new IllegalArgumentException("Invalid input");
-    }
-    return result;
+    return switch (precision) {
+      case 3 -> new Version(values[0], values[1], values[2]);
+      case 2 -> new Version(values[0], values[1]);
+      case 1 -> new Version(values[0]);
+      default -> throw new IllegalArgumentException("Invalid precision");
+    };
   }
 
 }

@@ -100,6 +100,9 @@ public class VersionTest {
     assertEquals(new Version(3, 0, 2000), Version.of("3.0.2000"));
     assertEquals(new Version(7, 4, 2), Version.of("7.4.2.GA"));
     assertEquals(new Version(1, 2, 3), Version.of("1.2.3-bla-1"));
+    assertEquals(new Version(0, 1, 1), Version.of("v0.1.1"));
+    assertEquals(new Version(1, 0), Version.of("1.0.x"));
+    assertEquals(new Version(8, 0), Version.of("8.0.Beta"));
     assertEquals(new Version(21), Version.of("21"));
     assertEquals(new Version(1, 5), Version.of("1.5"));
     assertEquals(Version.NULL, Version.of(""));
@@ -178,17 +181,17 @@ public class VersionTest {
     Version nullVersion = Version.NULL;
 
     assertEquals(
-      nullVersion.value(),
-      0b0_000000000000000000000_000000000000000000000_000000000000000000000L
+      0b0_000000000000000000000_000000000000000000000_000000000000000000000L,
+      nullVersion.value()
     );
 
     assertEquals(Precision.NONE, nullVersion.precision());
 
     assertEquals("null", nullVersion.toString());
 
-    assertNotEquals(nullVersion, new Version(0));
-    assertNotEquals(nullVersion, new Version(0, 0));
-    assertNotEquals(nullVersion, new Version(0, 0, 0));
+    assertNotEquals(new Version(0), nullVersion);
+    assertNotEquals(new Version(0, 0), nullVersion);
+    assertNotEquals(new Version(0, 0, 0), nullVersion);
 
     assertTrue(nullVersion.compareTo(new Version(0)) < 0);
     assertTrue(nullVersion.compareTo(new Version(0, 0)) < 0);
@@ -198,23 +201,23 @@ public class VersionTest {
   @Test
   public void testNormalization() {
     assertEquals(
-      new Version(0b0_110011001111111110011_111111111111111111110_111111111111111111110L).value(),
-      0b0_110011001111111110011_000000000000000000000_000000000000000000000L
+      0b0_110011001111111110011_000000000000000000000_000000000000000000000L,
+      new Version(0b0_110011001111111110011_111111111111111111110_111111111111111111110L).value()
     );
 
     assertEquals(
-      new Version(0b0_110011001111111110011_111111111111111111110_111111111111111111110L).value(),
-      0b0_110011001111111110011_000000000000000000000_000000000000000000000L
+      0b0_110011001111111110011_000000000000000000000_000000000000000000000L,
+      new Version(0b0_110011001111111110011_111111111111111111110_111111111111111111110L).value()
     );
 
     assertEquals(
-      new Version(0b0_110011001111111110011_111111111111111111110_111110001111111111111L).value(),
-      0b0_110011001111111110011_000000000000000000000_000000000000000000000L
+      0b0_110011001111111110011_000000000000000000000_000000000000000000000L,
+      new Version(0b0_110011001111111110011_111111111111111111110_111110001111111111111L).value()
     );
 
     assertEquals(
-      new Version(0b0_110011001111111110010_111111111111111111110_111111111111111111110L).value(),
-      0b0_000000000000000000000_000000000000000000000_000000000000000000000L
+      0b0_000000000000000000000_000000000000000000000_000000000000000000000L,
+      new Version(0b0_110011001111111110010_111111111111111111110_111111111111111111110L).value()
     );
   }
 

@@ -150,7 +150,7 @@ public final class Constraints {
     } else if (minInput.charAt(0) == '(' || minInput.charAt(0) == ']') {
       includeMin = false;
     } else {
-      throw new IllegalArgumentException("Invalid range format");
+      throw new IllegalArgumentException("Invalid range format: '" + notation + "'");
     }
 
     min = Version.of(minInput.substring(1), enforcedPrecision);
@@ -160,7 +160,7 @@ public final class Constraints {
     } else if (maxInput.charAt(maxInput.length() - 1) == ')' || maxInput.charAt(maxInput.length() - 1) == '[') {
       includeMax = false;
     } else {
-      throw new IllegalArgumentException("Invalid range format");
+      throw new IllegalArgumentException("Invalid range format: '" + notation + "'");
     }
 
     max = Version.of(maxInput.substring(0, maxInput.length() - 1), enforcedPrecision);
@@ -232,7 +232,7 @@ public final class Constraints {
       String[] tokens = notation.split("\\s+", 2);
 
       if (tokens.length != 2) {
-        throw new IllegalArgumentException("Invalid notation");
+        throw new IllegalArgumentException("Invalid notation: '" + notation + "'");
       }
 
       String operator = tokens[0];
@@ -246,7 +246,7 @@ public final class Constraints {
         case "<" -> lessThan(reference);
         case "<=" -> lessThanOrEqualTo(reference);
         case "~>" -> pessimisticallyCompatibleWith(reference);
-        default -> throw new IllegalArgumentException("Invalid notation");
+        default -> throw new IllegalArgumentException("Invalid notation: '" + notation + "'");
       };
     }
   }
