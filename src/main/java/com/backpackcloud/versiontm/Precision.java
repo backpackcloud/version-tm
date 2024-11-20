@@ -24,7 +24,7 @@
 
 package com.backpackcloud.versiontm;
 
-/// Enumeration of the possible precision values a version object can have.
+/// Enumeration of the possible precision in regard to accurate segments.
 ///
 /// The precision essentially tells which segments are used to determine a version value.
 /// A segment might hold the value <code>zero</code>, but doesn't necessarily imply that
@@ -33,13 +33,20 @@ package com.backpackcloud.versiontm;
 /// @author Ataxexe
 public enum Precision {
 
-  /// Used for {@link Version#NULL} values. If a version has this precision, its internal value is <code>0</code>.
+  /// Indicates no precision at all.
+  ///
+  /// If a {@link Version} has this precision, it basically means it's {@link Version#NULL}
   NONE,
-  /// Indicates that only the major segment is used.
+  /// Indicates that only the major segment is accurate.
   MAJOR,
-  /// Indicates that only the major and minor segments are used.
+  /// Indicates that only the major and minor segments are accurate.
   MINOR,
-  /// Indicates that all segments are used.
-  MICRO
+  /// Indicates that all three segments are accurate.
+  MICRO;
+
+  /// @return the number of segments this precision ensures to be accurate
+  public int segments() {
+    return ordinal();
+  }
 
 }

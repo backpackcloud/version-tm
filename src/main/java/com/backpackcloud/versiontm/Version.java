@@ -222,12 +222,26 @@ public class Version implements Comparable<Version> {
   ///
   /// @param value the value to parse
   /// @return the Version representation of the given string, or [#NULL] if not possible.
+  /// @see #of(String, Precision)
   public static Version of(String value) {
+    return of(value, Precision.NONE);
+  }
+
+  /// Tries to parse the given value in the format <code>major.minor.micro</code>. Returns [#NULL]
+  /// if it's not possible to parse the input.
+  ///
+  /// @param value the value to parse
+  /// @param enforcedPrecision the precision to enforce by filling missing segments with zeroes
+  /// @return the Version representation of the given string, or [#NULL] if not possible.
+  /// @see #of(String)
+  public static Version of(String value, Precision enforcedPrecision) {
     if (value == null || value.isBlank()) {
       return NULL;
     }
 
     String[] tokens = value.split("\\.", 3);
+    int precision = enforcedPrecision == Precision.NONE ? tokens.length : enforcedPrecision.segments();
+
     int[] values = new int[3];
 
     for (int i = 0; i < values.length && i < tokens.length; i++) {
@@ -243,27 +257,30 @@ public class Version implements Comparable<Version> {
       }
     }
 
+    return create(precision, values);
+  }
+
+  private static Version create(int precision, int[] values) {
     final Version result;
 
-    if (tokens.length == 3) {
+    if (precision == 3) {
       result = new Version(
         values[0],
         values[1],
         values[2]
       );
-    } else if (tokens.length == 2) {
+    } else if (precision == 2) {
       result = new Version(
         values[0],
         values[1]
       );
-    } else if (tokens.length == 1) {
+    } else if (precision == 1) {
       result = new Version(
         values[0]
       );
     } else {
       throw new IllegalArgumentException("Invalid input");
     }
-
     return result;
   }
 

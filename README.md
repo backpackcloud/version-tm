@@ -79,3 +79,49 @@ The version `2.3.9` will have its value as:
 
 Since `21_990_251_429_895 > 21_990_247_235_603`, we can conclude that `2.4.3 > 2.3.9`.
 
+## Usage
+
+The whole usage boils down to only three classes: `Version`, `Precision` and `Constraints`.
+
+```java
+// you can call one of the overloaded constructors that accept 1, 2 or 3 segments
+Version a = new Version(1, 0, 2);
+// or you can pass a String to the helper method (check the docs for usage help)
+Version b = Version.of("2.0");
+
+// constraints only versions that are greater or equal to 2.0.0
+Predicate<Version> constraint = Constraints.create(">= 2.0.0");
+
+System.out.println(constraint.test(a)); // false
+System.out.println(constraint.test(b)); // false ... WTF?!??!
+// remember, 2.0.0 > 2.0 > 2
+
+constraint = Constraints.create(">= 2");
+
+System.out.println(constraint.test(b)); // now it's true :)
+
+// or you could have created the version from a String, but enforcing a specific precision
+b = Version.of("2.0", Precision.MICRO);
+
+constraint = Constraints.create(">= 2.0.0");
+System.out.println(constraint.test(b)); // now it's also true :)
+```
+## Why UTC?
+
+Why should you Use This Crap™? Well... I don't know exactly why. Maybe you need something really light that can get the
+job done.
+
+I will give you my use case for building this.
+
+I had to cache and index a variety of different versions from software runtimes to query later on. Those queries had a
+bunch of different patterns, as I was searching for usage and also CVE exposure. Since all the different versions of the
+software products I was analyzing could be tossed on three segments, I did a search across libraries that could parse a
+Semantic Version in a way that I could store and play around with them.
+
+I don't know if there's something as simple as this, but I couldn't find, and turns out the exercise of solving this
+was really fun, and I've decided to publish the source code just to have at least one piece of useful-ish thing that
+I could be proud of showing to my kids.
+
+I don't intend to make this comply to the Semantic Versioning, but this could be used as a core for making such thing.
+The idea is to have something easy to work with that can also be stored as the easiest possible thing to compare: a
+freaking **number**.

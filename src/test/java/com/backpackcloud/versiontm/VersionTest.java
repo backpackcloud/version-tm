@@ -218,4 +218,11 @@ public class VersionTest {
     );
   }
 
+  @Test
+  public void testEnforcingPrecision() {
+    assertEquals(Version.of("2.0.0"), Version.of("2", Precision.MICRO));
+    assertNotEquals(Version.of("2.0"), Version.of("2.0", Precision.MICRO));
+    assertNotEquals(Version.of("2.0"), Version.of("2.0", Precision.MAJOR));
+  }
+
 }

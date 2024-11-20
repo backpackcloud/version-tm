@@ -75,6 +75,99 @@ public final class Constraints {
     return greaterThan(reference).or(equalTo(reference));
   }
 
+  /// Creates a new range using the provided values.
+  ///
+  /// @param min        the minimum value of the range
+  /// @param max        the maximum value of the range
+  /// @param includeMin if the minimum value is part of the range
+  /// @param includeMax if the maximum value is part of the range
+  public static Predicate<Version> range(Version min, Version max, boolean includeMin, boolean includeMax) {
+    Predicate<Version> predicate;
+
+    if (includeMin) {
+      predicate = Constraints.greaterThanOrEqualTo(min);
+    } else {
+      predicate = Constraints.greaterThan(min);
+    }
+
+    if (includeMax) {
+      predicate = predicate.and(Constraints.lessThanOrEqualTo(max));
+    } else {
+      predicate = predicate.and(Constraints.lessThan(max));
+    }
+
+    return predicate;
+  }
+
+  /// Creates a new Range based on the given notation.
+  ///
+  /// The notation uses the following characters for each part of the range:
+  ///
+  /// - `[` at the beginning: if the minimum value is part of the range
+  /// - `]` or `(` at the beginning: if the minimum value is not part of the range
+  /// - `]` at the end: if the maximum value is part of the range
+  /// - `[` or `)` at the beginning: if the maximum value is not part of the range
+  ///
+  /// So, a notation of `[1.0, 1.4]` creates a Range that goes from `1.0` to `1.4`, and includes
+  /// both sides. A notation of `[1.1.2, 1.2)` creates a Range that goes from `1.1.2` to `1.2`,
+  /// and includes only `1.1.2`, so the value `1.2` is outside the Range.
+  ///
+  /// @param notation the notation of the range
+  /// @return the created Range that satisfies the given notation.
+  /// @see #range(String, Precision)
+  public static Predicate<Version> range(String notation) {
+    return range(notation, Precision.NONE);
+  }
+
+  /// Creates a new Range based on the given notation.
+  ///
+  /// The notation uses the following characters for each part of the range:
+  ///
+  /// - `[` at the beginning: if the minimum value is part of the range
+  /// - `]` or `(` at the beginning: if the minimum value is not part of the range
+  /// - `]` at the end: if the maximum value is part of the range
+  /// - `[` or `)` at the beginning: if the maximum value is not part of the range
+  ///
+  /// So, a notation of `[1.0, 1.4]` creates a Range that goes from `1.0` to `1.4`, and includes
+  /// both sides. A notation of `[1.1.2, 1.2)` creates a Range that goes from `1.1.2` to `1.2`,
+  /// and includes only `1.1.2`, so the value `1.2` is outside the Range.
+  ///
+  /// @param notation          the notation of the range
+  /// @param enforcedPrecision the precision to enforce by filling up missing segments with zeroes
+  /// @return the created Range that satisfies the given notation.
+  /// @see #range(String)
+  public static Predicate<Version> range(String notation, Precision enforcedPrecision) {
+    Version min, max;
+    boolean includeMin, includeMax;
+
+    String[] tokens = notation.split("\\s*,\\s*", 2);
+
+    String minInput = tokens[0];
+    String maxInput = tokens[1];
+
+    if (minInput.charAt(0) == '[') {
+      includeMin = true;
+    } else if (minInput.charAt(0) == '(' || minInput.charAt(0) == ']') {
+      includeMin = false;
+    } else {
+      throw new IllegalArgumentException("Invalid range format");
+    }
+
+    min = Version.of(minInput.substring(1), enforcedPrecision);
+
+    if (maxInput.charAt(maxInput.length() - 1) == ']') {
+      includeMax = true;
+    } else if (maxInput.charAt(maxInput.length() - 1) == ')' || maxInput.charAt(maxInput.length() - 1) == '[') {
+      includeMax = false;
+    } else {
+      throw new IllegalArgumentException("Invalid range format");
+    }
+
+    max = Version.of(maxInput.substring(0, maxInput.length() - 1), enforcedPrecision);
+
+    return range(min, max, includeMin, includeMax);
+  }
+
   /// Creates a predicate for pessimistic constraints.
   ///
   /// A pessimistic constraint allows versions up to a point where they might introduce breaking changes.
@@ -90,22 +183,60 @@ public final class Constraints {
       case MAJOR -> new Version(reference.major() + 1);
       case MINOR, MICRO -> new Version(reference.major(), reference.minor() + 1);
     };
-    return new Range(reference, limit, true, false);
+    return range(reference, limit, true, false);
   }
 
-  public static Predicate<Version> of(String input) {
-    input = input.trim();
-    if (input.startsWith("[") || input.startsWith("(") || input.startsWith("]")) {
-      return Range.of(input);
+  /// A central point for creating the constraints provided by this class using notations.
+  ///
+  /// The supported notations are:
+  ///
+  /// - {@link #range(String) range}
+  /// - `>= {version}` - {@link #greaterThanOrEqualTo(Version)}
+  /// - `> {version}` - {@link #greaterThan(Version)}
+  /// - `= {version}` - {@link #equalTo(Version)}
+  /// - `!= {version}` - {@link #differentFrom(Version)}
+  /// - `< {version}` - {@link #lessThan(Version)}
+  /// - `<= {version}` - {@link #lessThanOrEqualTo(Version)}
+  /// - `~> {version}` - {@link #pessimisticallyCompatibleWith(Version)}
+  ///
+  /// @param notation the notation of the constraint to create
+  /// @see #create(String, Precision)
+  public static Predicate<Version> create(String notation) {
+    return create(notation, Precision.NONE);
+  }
+
+  /// A central point for creating the constraints provided by this class using notations.
+  ///
+  /// The supported notations are:
+  ///
+  /// - {@link #range(String) range}
+  /// - `>= {version}` - {@link #greaterThanOrEqualTo(Version)}
+  /// - `> {version}` - {@link #greaterThan(Version)}
+  /// - `= {version}` - {@link #equalTo(Version)}
+  /// - `!= {version}` - {@link #differentFrom(Version)}
+  /// - `< {version}` - {@link #lessThan(Version)}
+  /// - `<= {version}` - {@link #lessThanOrEqualTo(Version)}
+  /// - `~> {version}` - {@link #pessimisticallyCompatibleWith(Version)}
+  ///
+  /// @param notation          the notation of the constraint to create
+  /// @param enforcedPrecision the precision to enforce by filling up missing segments with zeroes
+  /// @see #create(String)
+  public static Predicate<Version> create(String notation, Precision enforcedPrecision) {
+    if (notation == null) {
+      return version -> false;
+    }
+    notation = notation.trim();
+    if (notation.startsWith("[") || notation.startsWith("(") || notation.startsWith("]")) {
+      return range(notation);
     } else {
-      String[] tokens = input.split("\\s+", 2);
+      String[] tokens = notation.split("\\s+", 2);
 
       if (tokens.length != 2) {
-        throw new IllegalArgumentException("Invalid input");
+        throw new IllegalArgumentException("Invalid notation");
       }
 
       String operator = tokens[0];
-      Version reference = Version.of(tokens[1]);
+      Version reference = Version.of(tokens[1], enforcedPrecision);
 
       return switch (operator) {
         case ">=" -> greaterThanOrEqualTo(reference);
@@ -115,7 +246,7 @@ public final class Constraints {
         case "<" -> lessThan(reference);
         case "<=" -> lessThanOrEqualTo(reference);
         case "~>" -> pessimisticallyCompatibleWith(reference);
-        default -> throw new IllegalArgumentException("Invalid operator");
+        default -> throw new IllegalArgumentException("Invalid notation");
       };
     }
   }
