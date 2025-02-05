@@ -2,7 +2,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright (c) 2024 Marcelo "Ataxexe" Guimarães
+  ~ Copyright (c) 2025 Marcelo "Ataxexe" Guimarães
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
 
   <groupId>com.backpackcloud</groupId>
   <artifactId>version-tm</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
 
   <name>version-tm</name>
 
