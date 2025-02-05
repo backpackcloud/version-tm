@@ -24,6 +24,8 @@
 
 package com.backpackcloud.versiontm;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 /// A simple and lightweight three-segment version implementation.
@@ -39,7 +41,10 @@ import java.util.Objects;
 /// so the version <code>2.0.0</code> is greater than the version <code>2.0</code>.
 ///
 /// @author Marcelo "Ataxexe" Guimarães
-public class Version implements Comparable<Version> {
+public class Version implements Serializable, Comparable<Version> {
+
+  @Serial
+  private static final long serialVersionUID = 2280347665608754965L;
 
   /// The size reserved for the segment value
   private static final int SEGMENT_SIZE = 20;
