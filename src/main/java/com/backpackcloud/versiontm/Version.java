@@ -50,8 +50,11 @@ public class Version implements Serializable, Comparable<Version> {
   private static final int SEGMENT_SIZE = 20;
   /// The size reserved for the segment flag
   private static final int FLAG_SIZE = 1;
+
   /// The theoretical maximum value of a segment
-  private static final int MAX = (int) (Math.pow(2, SEGMENT_SIZE) - 1);
+  public static final int MAX_SEGMENT_VALUE = (int) (Math.pow(2, SEGMENT_SIZE) - 1);
+  /// The theoretical minimum value of a segment
+  public static final int MIN_SEGMENT_VALUE = 0;
 
   /// Where the micro segment starts
   private static final int SEGMENT_MICRO = FLAG_SIZE;
@@ -59,6 +62,13 @@ public class Version implements Serializable, Comparable<Version> {
   private static final int SEGMENT_MINOR = SEGMENT_MICRO + SEGMENT_SIZE + FLAG_SIZE;
   /// Where the major segment starts
   private static final int SEGMENT_MAJOR = SEGMENT_MINOR + SEGMENT_SIZE + FLAG_SIZE;
+
+  ///  The mask used to determine if the segment flags are on only for the major segment
+  private static final long MAJOR_PRECISION_MASK = 1L << (SEGMENT_MAJOR - FLAG_SIZE);
+  ///  The mask used to determine if the segment flags are on for the major and minor segments
+  private static final long MINOR_PRECISION_MASK = (1L << (SEGMENT_MINOR - FLAG_SIZE)) | MAJOR_PRECISION_MASK;
+  ///  The mask used to determine if all the segment flags are on
+  private static final long MICRO_PRECISION_MASK = (1L << (SEGMENT_MICRO - FLAG_SIZE)) | MINOR_PRECISION_MASK;
 
   /// The representation of a Version <code>null</code>.
   public static final Version NULL = new Version(0L);
@@ -72,7 +82,6 @@ public class Version implements Serializable, Comparable<Version> {
   /// The remaining 20 bits are used to store the actual segment value. This leaves us with exactly 63 bits to store
   /// the values and flags, saving the last bit to avoid dealing with negative numbers.
   private final long value;
-  private final Precision precision;
 
   /// Creates a new Version object using the given internal representation.
   ///
@@ -85,30 +94,17 @@ public class Version implements Serializable, Comparable<Version> {
       throw new IllegalArgumentException("Invalid value: " + value + " < 0");
     }
 
-    boolean knownMicro = (value & 0b0_000000000000000000000_000000000000000000000_000000000000000000001L) ==
-      0b0_000000000000000000000_000000000000000000000_000000000000000000001L;
-
-    boolean knownMinor = (value & 0b0_000000000000000000000_000000000000000000001_000000000000000000000L) ==
-      0b0_000000000000000000000_000000000000000000001_000000000000000000000L;
-
-    boolean knownMajor = (value & 0b0_000000000000000000001_000000000000000000000_000000000000000000000L) ==
-      0b0_000000000000000000001_000000000000000000000_000000000000000000000L;
-
     // normalizes the internal implementation by zeroing segments that are not part of the precision
-    if (knownMicro && knownMinor && knownMajor) {
-      this.precision = Precision.MICRO;
+    if ((value & MICRO_PRECISION_MASK) == MICRO_PRECISION_MASK) {
       this.value = value;
 
-    } else if (knownMinor && knownMajor) {
-      this.precision = Precision.MINOR;
-      this.value = value & 0b0_111111111111111111111_111111111111111111111_000000000000000000000L;
+    } else if ((value & MINOR_PRECISION_MASK) == MINOR_PRECISION_MASK) {
+      this.value = value & ((~0L) << SEGMENT_SIZE + FLAG_SIZE);
 
-    } else if (knownMajor) {
-      this.precision = Precision.MAJOR;
-      this.value = value & 0b0_111111111111111111111_000000000000000000000_000000000000000000000L;
+    } else if ((value & MAJOR_PRECISION_MASK) == MAJOR_PRECISION_MASK) {
+      this.value = value & ~((~0L) << SEGMENT_SIZE + FLAG_SIZE) << ((SEGMENT_SIZE + FLAG_SIZE) * 2);
 
     } else {
-      precision = Precision.NONE;
       this.value = 0;
     }
   }
@@ -194,11 +190,23 @@ public class Version implements Serializable, Comparable<Version> {
   ///
   /// @return the precision of this version value.
   public Precision precision() {
-    return precision;
+    if ((value & MICRO_PRECISION_MASK) == MICRO_PRECISION_MASK) {
+      return Precision.MICRO;
+    }
+
+    if ((value & MINOR_PRECISION_MASK) == MINOR_PRECISION_MASK) {
+      return Precision.MINOR;
+    }
+
+    if ((value & MAJOR_PRECISION_MASK) == MAJOR_PRECISION_MASK) {
+      return Precision.MAJOR;
+    }
+
+    return Precision.NONE;
   }
 
   private int segment(int segmentFactor) {
-    return (int) ((this.value >>> segmentFactor) & 0b0_000000000000000000000_000000000000000000000_011111111111111111111);
+    return (int) ((this.value >>> segmentFactor) & ~((~0) << SEGMENT_SIZE));
   }
 
   @Override
@@ -220,7 +228,7 @@ public class Version implements Serializable, Comparable<Version> {
 
   @Override
   public String toString() {
-    return switch (precision) {
+    return switch (precision()) {
       case NONE -> "null";
       case MAJOR -> String.valueOf(major());
       case MINOR -> String.format("%d.%d", major(), minor());
