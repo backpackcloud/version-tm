@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2024 Marcelo "Ataxexe" Guimarães
+ * Copyright (c) 2025 Marcelo "Ataxexe" Guimarães
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package com.backpackcloud.versiontm;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /// A simple and lightweight three-segment version implementation.
 ///
@@ -114,44 +115,51 @@ public class Version implements Serializable, Comparable<Version> {
   /// @param major the value of the major segment
   /// @param minor the value of the minor segment
   /// @param micro the value of the micro segment
+  /// @throws InvalidSegmentException if any segment is not within the accepted range
+  /// @see #MAX_SEGMENT_VALUE
+  /// @see #MIN_SEGMENT_VALUE
   public Version(int major, int minor, int micro) {
-    this(((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR | (long) micro << SEGMENT_MICRO) |
-      0b0_000000000000000000001_000000000000000000001_000000000000000000001L);
-
-    checkSegments(major, minor, micro);
+    this(checkSegments(major, minor, micro,
+        () -> ((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR | (long) micro << SEGMENT_MICRO) | MICRO_PRECISION_MASK)
+    );
   }
 
   /// Creates a version object with only the first two segments.
   ///
   /// @param major the value of the major segment
   /// @param minor the value of the minor segment
+  /// @throws InvalidSegmentException if any segment is not within the accepted range
+  /// @see #MAX_SEGMENT_VALUE
+  /// @see #MIN_SEGMENT_VALUE
   public Version(int major, int minor) {
-    this(((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR) |
-      0b0_000000000000000000001_000000000000000000001_000000000000000000000L);
-
-    checkSegments(major, minor, 0);
+    this(checkSegments(major, minor, 0,
+        () -> ((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR) | MINOR_PRECISION_MASK)
+    );
   }
 
   /// Creates a version object with only the first segment.
   ///
   /// @param major the value of the major segment
+  /// @throws InvalidSegmentException if any segment is not within the accepted range
+  /// @see #MAX_SEGMENT_VALUE
+  /// @see #MIN_SEGMENT_VALUE
   public Version(int major) {
-    this(((long) major << SEGMENT_MAJOR) |
-      0b0_000000000000000000001_000000000000000000000_000000000000000000000L);
-
-    checkSegments(major, 0, 0);
+    this(checkSegments(major, 0, 0,
+        () -> ((long) major << SEGMENT_MAJOR) | MAJOR_PRECISION_MASK)
+    );
   }
 
-  private void checkSegments(int major, int minor, int micro) {
-    if (major > MAX) {
-      throw new IllegalArgumentException("major segment overflow: " + major);
+  private static long checkSegments(int major, int minor, int micro, Supplier<Long> supplier) {
+    if (major > MAX_SEGMENT_VALUE || major < MIN_SEGMENT_VALUE) {
+      throw new InvalidSegmentException(major, Version.NULL);
     }
-    if (minor > MAX) {
-      throw new IllegalArgumentException("minor segment overflow: " + minor);
+    if (minor > MAX_SEGMENT_VALUE || minor < MIN_SEGMENT_VALUE) {
+      throw new InvalidSegmentException(minor, new Version(major));
     }
-    if (micro > MAX) {
-      throw new IllegalArgumentException("micro segment overflow: " + micro);
+    if (micro > MAX_SEGMENT_VALUE || micro < MIN_SEGMENT_VALUE) {
+      throw new InvalidSegmentException(micro, new Version(major, minor));
     }
+    return supplier.get();
   }
 
   /// Returns the internal representation of this version, for storing purposes.

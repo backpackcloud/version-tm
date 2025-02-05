@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2024 Marcelo "Ataxexe" Guimarães
+ * Copyright (c) 2025 Marcelo "Ataxexe" Guimarães
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -157,6 +157,10 @@ public class VersionTest {
 
     assertThrows(IllegalArgumentException.class, () -> new Version(invalid));
     assertThrows(IllegalArgumentException.class, () -> new Version(1, invalid));
+
+    assertThrows(IllegalArgumentException.class, () -> new Version(-1, 0, 1));
+    assertThrows(IllegalArgumentException.class, () -> new Version(1, -1, 1));
+    assertThrows(IllegalArgumentException.class, () -> new Version(1, 1, -1));
   }
 
   @Test
@@ -226,6 +230,37 @@ public class VersionTest {
     assertEquals(Version.of("2.0.0"), Version.of("2", Precision.MICRO));
     assertNotEquals(Version.of("2.0"), Version.of("2.0", Precision.MICRO));
     assertNotEquals(Version.of("2.0"), Version.of("2.0", Precision.MAJOR));
+  }
+
+  @Test
+  public void testCoercion() {
+    try {
+      Version.of("2.7.90419495");
+      throw new RuntimeException();
+    } catch (InvalidSegmentException e) {
+      assertEquals(Version.of("2.7"), e.coercedVersion());
+    }
+
+    try {
+      Version.of("2.90419495");
+      throw new RuntimeException();
+    } catch (InvalidSegmentException e) {
+      assertEquals(Version.of("2"), e.coercedVersion());
+    }
+
+    try {
+      Version.of("90419495");
+      throw new RuntimeException();
+    } catch (InvalidSegmentException e) {
+      assertEquals(Version.NULL, e.coercedVersion());
+    }
+  }
+
+  @Test
+  public void testNegativeSegments() {
+    assertThrows(InvalidSegmentException.class, () -> new Version(2, 7, -9));
+    assertThrows(InvalidSegmentException.class, () -> new Version(2, -7, 9));
+    assertThrows(InvalidSegmentException.class, () -> new Version(-2, 7, 9));
   }
 
 }
