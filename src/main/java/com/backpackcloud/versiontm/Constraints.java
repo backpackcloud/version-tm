@@ -231,6 +231,10 @@ public final class Constraints {
     } else {
       String[] tokens = notation.split("\\s+", 2);
 
+      // if no notation, assumes equalTo
+      if (tokens.length == 1) {
+        return equalTo(Version.of(tokens[0], enforcedPrecision));
+      }
       if (tokens.length != 2) {
         throw new IllegalArgumentException("Invalid notation: '" + notation + "'");
       }

@@ -36,6 +36,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ConstraintsTest {
 
   @Test
+  public void testDefaultConstraint() {
+    Helper helper = new Helper("", Constraints::equalTo, "1.2.3");
+
+    helper.assertTrue("1.2.3");
+
+    helper.assertFalse("1.2.4");
+    helper.assertFalse("1.1.3");
+    helper.assertFalse("2.2.3");
+
+    helper.assertFalse("1.2.0", "1.2");
+    helper.assertFalse("1.0", "1");
+    helper.assertFalse("1.0.0", "1");
+  }
+
+  @Test
   public void testEqualTo() {
     Helper helper = new Helper("=", Constraints::equalTo, "1.2.3");
 
