@@ -32,7 +32,7 @@ import java.util.Objects;
 ///
 /// The segments are "major", "minor" and "micro". They are stored on a single <code>long</code> field with a
 /// predetermined length of 20 bits for each segment. That means the theoretical maximum value of a segment is
-/// <code>(2 ^ 20) - 1 = 1_048_576</code>.
+/// <code>(2 ^ 20) - 1 = 1_048_575</code>.
 ///
 /// It's possible to have a version object without the three segments, and that won't change their position
 /// in the field, so the objects are comparable regardless of how many segments they have.
