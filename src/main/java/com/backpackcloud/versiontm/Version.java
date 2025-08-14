@@ -310,9 +310,13 @@ public class Version implements Serializable, Comparable<Version> {
           throw new IllegalArgumentException("Invalid input: '" + value + "'", e);
         }
       } else if (i > 0 && i == tokens.length - 1) {
-        // if this is the last token, and it's invalid
-        // let's lower the precision and let it pass
-        precision--;
+        if (enforcedPrecision == Precision.NONE) {
+          // if this is the last token, and it's invalid
+          // let's lower the precision and let it pass
+          precision--;
+        } else {
+          throw new IllegalArgumentException("Invalid input: '" + value + "'");
+        }
       } else {
         throw new IllegalArgumentException("Invalid input: '" + value + "'");
       }
