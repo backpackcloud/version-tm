@@ -24,10 +24,9 @@
 
 package com.backpackcloud.versiontm;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -57,6 +56,8 @@ public class VersionTest {
       0b0_000000000000000000011_000000000000000000101_000000000000000000000L,
       version.value()
     );
+    assertEquals(version, new Version(0b0_000000000000000000011_000000000000000000101_000000000000000000000L));
+    assertEquals(version, new Version(0b0_000000000000000000011_000000000000000000101_000001110000000000000L));
 
     version = new Version(1);
 
@@ -67,6 +68,8 @@ public class VersionTest {
       0b0_000000000000000000011_000000000000000000000_000000000000000000000L,
       version.value()
     );
+    assertEquals(version, new Version(0b0_000000000000000000011_000000000000000000000_000000000000000000000L));
+    assertEquals(version, new Version(0b0_000000000000000000011_000110000000000000000_000000001100000000000L));
 
     version = new Version(9, 7, 10);
 
@@ -79,6 +82,7 @@ public class VersionTest {
       0b0_000000000000000010011_000000000000000001111_000000000000000010101L,
       version.value()
     );
+    assertEquals(version, new Version(0b0_000000000000000010011_000000000000000001111_000000000000000010101L));
 
     version = new Version(3, 0, 2000);
 
@@ -91,6 +95,9 @@ public class VersionTest {
       0b0_000000000000000000111_000000000000000000001_000000000111110100001L,
       version.value()
     );
+    assertEquals(version, new Version(0b0_000000000000000000111_000000000000000000001_000000000111110100001L));
+
+    assertThrows(IllegalArgumentException.class, () -> new Version(-1L));
   }
 
   @Test
@@ -108,6 +115,34 @@ public class VersionTest {
     assertEquals(Version.NULL, Version.of(""));
     assertEquals(Version.NULL, Version.of(" "));
     assertEquals(Version.NULL, Version.of(null));
+
+    assertThrows(IllegalArgumentException.class, () -> Version.of("a.b.c"));
+    assertThrows(IllegalArgumentException.class, () -> Version.of("1.b.c"));
+  }
+
+  @Test
+  public void testParsingWithEnforcedPrecision() {
+    assertEquals(new Version(1, 2), Version.of("1.2.3", Precision.MINOR));
+    assertEquals(new Version(9, 7, 10), Version.of("9.7.10", Precision.MICRO));
+    assertEquals(new Version(3), Version.of("3.0.2000", Precision.MAJOR));
+
+    assertEquals(new Version(1, 2, 3), Version.of("1.2.3-bla-1", Precision.MICRO));
+    assertEquals(new Version(1, 2), Version.of("1.2.3-bla-1", Precision.MINOR));
+    assertEquals(new Version(1), Version.of("1.2.3-bla-1", Precision.MAJOR));
+
+    assertEquals(new Version(0, 1, 1), Version.of("v0.1.1", Precision.MICRO));
+
+    assertEquals(Version.NULL, Version.of("", Precision.MICRO));
+    assertEquals(Version.NULL, Version.of("", Precision.MAJOR));
+    assertEquals(Version.NULL, Version.of("", Precision.MINOR));
+
+    assertEquals(Version.NULL, Version.of(" ", Precision.MICRO));
+    assertEquals(Version.NULL, Version.of(" ", Precision.MAJOR));
+    assertEquals(Version.NULL, Version.of(" ", Precision.MINOR));
+
+    assertEquals(Version.NULL, Version.of(null));
+
+    assertThrows(IllegalArgumentException.class, () -> Version.of("1.2.c", Precision.MICRO));
   }
 
   @Test
@@ -261,6 +296,69 @@ public class VersionTest {
     assertThrows(InvalidSegmentException.class, () -> new Version(2, 7, -9));
     assertThrows(InvalidSegmentException.class, () -> new Version(2, -7, 9));
     assertThrows(InvalidSegmentException.class, () -> new Version(-2, 7, 9));
+  }
+
+  @Test
+  public void testTruncation() {
+    assertEquals(Version.of("2.0.0"), Version.of("2.0.0").truncate(Precision.MICRO));
+    assertEquals(Version.of("2.0"), Version.of("2.0.0").truncate(Precision.MINOR));
+    assertEquals(Version.of("2"), Version.of("2.0.0").truncate(Precision.MAJOR));
+
+    assertEquals(Version.of("2.0"), Version.of("2.0").truncate(Precision.MICRO));
+    assertEquals(Version.of("2.0"), Version.of("2.0").truncate(Precision.MINOR));
+    assertEquals(Version.of("2"), Version.of("2.0").truncate(Precision.MAJOR));
+
+    assertEquals(Version.of("2"), Version.of("2").truncate(Precision.MICRO));
+    assertEquals(Version.of("2"), Version.of("2").truncate(Precision.MINOR));
+    assertEquals(Version.of("2"), Version.of("2").truncate(Precision.MAJOR));
+
+    assertEquals(Version.NULL, Version.of("2.0.0").truncate(Precision.NONE));
+    assertEquals(Version.NULL, Version.of("2.0").truncate(Precision.NONE));
+    assertEquals(Version.NULL, Version.of("2").truncate(Precision.NONE));
+  }
+
+  @Test
+  public void testExpansion() {
+    assertEquals(Version.of("2.0.0"), Version.of("2.0.0").expand(Precision.MICRO));
+    assertEquals(Version.of("2.0"), Version.of("2.0.0").expand(Precision.MINOR));
+    assertEquals(Version.of("2"), Version.of("2.0.0").expand(Precision.MAJOR));
+
+    assertEquals(Version.of("2.0.0"), Version.of("2.0").expand(Precision.MICRO));
+    assertEquals(Version.of("2.0"), Version.of("2.0").expand(Precision.MINOR));
+    assertEquals(Version.of("2"), Version.of("2.0").expand(Precision.MAJOR));
+
+    assertEquals(Version.of("2.0.0"), Version.of("2").expand(Precision.MICRO));
+    assertEquals(Version.of("2.0"), Version.of("2").expand(Precision.MINOR));
+    assertEquals(Version.of("2"), Version.of("2").expand(Precision.MAJOR));
+
+    assertEquals(Version.NULL, Version.of("2.0.0").expand(Precision.NONE));
+    assertEquals(Version.NULL, Version.of("2.0").expand(Precision.NONE));
+    assertEquals(Version.NULL, Version.of("2").expand(Precision.NONE));
+  }
+
+  @Test
+  public void testEquality() {
+    assertNotEquals(Version.of("2.0.0"), "2.0.0");
+    assertNotEquals(Version.of("2.0.0"), new Object());
+  }
+
+  @Test
+  public void testNext() {
+    assertEquals(Version.of("2.0.1"), Version.of("2.0.0").next());
+    assertEquals(Version.of("2.0.5"), Version.of("2.0.4").next());
+    assertEquals(Version.of("2.1"), Version.of("2.0").next());
+    assertEquals(Version.of("3"), Version.of("2").next());
+    assertEquals(Version.NULL, Version.NULL.next());
+  }
+
+  private static void assertEquals(Object expected, Object reference) {
+    Assertions.assertEquals(expected, reference);
+    Assertions.assertEquals(expected.hashCode(), reference.hashCode());
+  }
+
+  private static void assertNotEquals(Object expected, Object reference) {
+    Assertions.assertNotEquals(expected, reference);
+    Assertions.assertNotEquals(expected.hashCode(), reference.hashCode());
   }
 
 }
