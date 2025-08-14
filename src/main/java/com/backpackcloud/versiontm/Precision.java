@@ -44,11 +44,15 @@ public enum Precision {
   /// Indicates that all three segments are accurate.
   MICRO;
 
-  /// @return the number of segments this precision ensures to be accurate
+  /// @return the number of segments this precision ensures to be accurate.
   public int segments() {
     return ordinal();
   }
 
+  /// Calculates the Precision that is less accurate than this one. [Precision#NONE] and
+  /// [Precision#MAJOR] don't have a less precise representation.
+  ///
+  /// @return the less accurate Precision closest to this Precision.
   public Precision less() {
     if (this == NONE || this == MAJOR) {
       return this;
@@ -56,6 +60,10 @@ public enum Precision {
     return fromSegments(segments() - 1);
   }
 
+  /// Calculates the Precision that is more accurate than this one. [Precision#MICRO]
+  /// doesn't have a more accurate precise representation.
+  ///
+  /// @return the more accurate Precision closest to this Precision.
   public Precision more() {
     if (this == MICRO) {
       return this;
@@ -63,6 +71,11 @@ public enum Precision {
     return fromSegments(segments() + 1);
   }
 
+  /// Calculates which Precision has the given number os segments.
+  ///
+  /// @param segments the desired number of segments
+  /// @return the Precision object that has the exact number of segments given.
+  /// @throws IllegalArgumentException if the desired number os segments can't be matched by any Precision
   public static Precision fromSegments(int segments) {
     if (segments < 0 || segments > 3) {
       throw new IllegalArgumentException("Invalid segments: " + segments);
