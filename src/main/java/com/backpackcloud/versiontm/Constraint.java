@@ -46,18 +46,11 @@ public interface Constraint extends Predicate<Version> {
 
   /// A central point for creating the constraints provided by this class using notations.
   ///
-  /// The supported notations are:
+  /// The supported notations are defined in each of the following constraint enumerations:
   ///
-  /// - `>= {version}` - [#greaterThanOrEqualTo(Version)]
-  /// - `> {version}` - [#greaterThan(Version)]
-  /// - `= {version}` - [#equalTo(Version)]
-  /// - `!= {version}` - [#differentFrom(Version)]
-  /// - `< {version}` - [#lessThan(Version)]
-  /// - `<= {version}` - [#lessThanOrEqualTo(Version)]
-  /// - `~> {version}` - [#atLeast(Version, Precision)] with `Precision.MINOR`
-  /// - `~~> {version}` - [#atLeast(Version, Precision)] with `Precision.MAJOR`
-  /// - `<~ {version}` - [#priorTo(Version, Precision)] with `Precision.MINOR`
-  /// - `<~~ {version}` - [#priorTo(Version, Precision)] with `Precision.MAJOR`
+  /// - [Comparison] - for simple comparisons with the raw version value (without considering segments)
+  /// - [Interval] - for ranges of versions
+  /// - [Compatibility] - for comparisons involving segments
   ///
   /// @param inputNotation     the notation of the constraint to create
   /// @param enforcedPrecision the precision to enforce by filling up missing segments with zeroes
