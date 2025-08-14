@@ -208,6 +208,12 @@ public class Version implements Serializable, Comparable<Version> {
     return Precision.NONE;
   }
 
+  /// Creates a new Version object that has at max the given precision.
+  ///
+  /// If there's any segment that doesn't fit the given precision, it will be discarded.
+  ///
+  /// @param newPrecision the precision to target
+  /// @return a new Version
   public Version truncate(Precision newPrecision) {
     Precision thisPrecision = this.precision();
     Precision effectivePrecision = thisPrecision.segments() >= newPrecision.segments() ? newPrecision : Precision.fromSegments(
@@ -216,6 +222,12 @@ public class Version implements Serializable, Comparable<Version> {
     return expand(effectivePrecision);
   }
 
+  /// Creates a new Version object that has exactly the given precision.
+  ///
+  /// Segments can be discarded or created with `zero` value until the given precision is reached.
+  ///
+  /// @param newPrecision the precision to target
+  /// @return a new Version
   public Version expand(Precision newPrecision) {
     if (newPrecision == this.precision()) {
       return this;
@@ -228,6 +240,9 @@ public class Version implements Serializable, Comparable<Version> {
     };
   }
 
+  /// Creates a new Version where the last segment is incremented by `1`.
+  ///
+  /// @return a new Version
   public Version next() {
     return switch (precision()) {
       case NONE -> Version.NULL;
