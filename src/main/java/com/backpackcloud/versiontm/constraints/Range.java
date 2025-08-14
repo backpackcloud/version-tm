@@ -27,10 +27,25 @@ package com.backpackcloud.versiontm.constraints;
 import com.backpackcloud.versiontm.Constraint;
 import com.backpackcloud.versiontm.Version;
 
+/// A constraint represented a range of Versions.
+///
+/// Ranges are composed of a lower and an upper [limit][Limit]. Each can be included
+/// or excluded from the range itself.
+///
+/// @param lower the lower limit of the range
+/// @param upper the upper limit of the range
+/// @author Marcelo "Ataxexe" Guimarães
+/// @see Limit
+/// @see Interval
+/// @since 2.0
 public record Range(Limit lower, Limit upper) implements Constraint {
 
-  public Range(Version includedLimit, Version excludedLimit) {
-    this(Limit.inclusive(includedLimit), Limit.exclusive(excludedLimit));
+  /// Creates a new Range by including the lower limit and excluding the upper limit.
+  ///
+  /// @param lowerLimit the lower limit of the range (will be included in the range)
+  /// @param upperLimit the upper limit of the range (will be excluded from the range)
+  public Range(Version lowerLimit, Version upperLimit) {
+    this(Limit.inclusive(lowerLimit), Limit.exclusive(upperLimit));
   }
 
   @Override

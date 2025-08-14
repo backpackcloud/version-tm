@@ -32,8 +32,13 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/// Represents a constraint used to evaluate Version objects.
+///
+/// @author Marcelo "Ataxexe" Guimarães
+/// @since 2.0
 public interface Constraint extends Predicate<Version> {
 
+  /// The pattern used to parse the expressions.
   Pattern NOTATION_PATTERN = Pattern.compile("(?<left>[0-9.]+)?\\s*(?<operation>[~=\\-|<>!]+)\\s*(?<right>[0-9.]+)");
 
   /// A central point for creating the constraints provided by this library using notations. Doesn't enforce precision.
@@ -46,14 +51,19 @@ public interface Constraint extends Predicate<Version> {
 
   /// A central point for creating the constraints provided by this class using notations.
   ///
-  /// The supported notations are defined in each of the following constraint enumerations:
+  /// Notations can be of two types:
+  ///
+  /// - One operand: `symbol version` (example: `> 3.2`, `~> 4.2`)
+  /// - Two operands: `version1 symbol version2` (example: `1.0 |- 2.0`)
+  ///
+  /// The recognized symbols are defined in each of the following constraint enumerations:
   ///
   /// - [Comparison] - for simple comparisons with the raw version value (without considering segments)
   /// - [Interval] - for ranges of versions
   /// - [Compatibility] - for comparisons involving segments
   ///
   /// @param inputNotation     the notation of the constraint to create
-  /// @param enforcedPrecision the precision to enforce by filling up missing segments with zeroes
+  /// @param enforcedPrecision the precision to enforce
   /// @see #create(String)
   static Constraint create(String inputNotation, Precision enforcedPrecision) {
     if (inputNotation == null || inputNotation.isBlank()) {

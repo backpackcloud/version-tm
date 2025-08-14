@@ -26,18 +26,31 @@ package com.backpackcloud.versiontm.constraints;
 
 import com.backpackcloud.versiontm.Version;
 
+/// Represents the limit of a [range][Range]. It can include or exclude the value.
+///
+/// @param value the value of this limit
+/// @param type  the type of this limit
+/// @author Marcelo "Ataxexe" Guimaraes
+/// @see Limit
+/// @since 2.0
 public record Limit(Version value, Type type) {
 
+  /// Creates a new limit of type [Type#INCLUSIVE].
   public static Limit inclusive(Version value) {
     return new Limit(value, Type.INCLUSIVE);
   }
 
+  /// Creates a new limit of type [Type#EXCLUSIVE].
   public static Limit exclusive(Version value) {
     return new Limit(value, Type.EXCLUSIVE);
   }
 
+  /// Represents the type of limit.
   public enum Type {
-    INCLUSIVE, EXCLUSIVE
+    /// Indicates that the limit includes its value
+    INCLUSIVE,
+    /// Indicates that the limit excludes its value
+    EXCLUSIVE
   }
 
 }

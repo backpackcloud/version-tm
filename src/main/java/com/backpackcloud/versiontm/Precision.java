@@ -36,12 +36,21 @@ public enum Precision {
   /// Indicates no precision at all.
   ///
   /// If a {@link Version} has this precision, it basically means it's {@link Version#NULL}
+  ///
+  /// Enforcing this precision has no effect.
   NONE,
   /// Indicates that only the major segment is accurate.
+  ///
+  /// Enforcing this precision will discard both minor and micro segments if they are present.
   MAJOR,
   /// Indicates that only the major and minor segments are accurate.
+  ///
+  /// Enforcing this precision will discard the micro segment if it's present or fill the minor
+  /// segment with zero if it's not present.
   MINOR,
   /// Indicates that all three segments are accurate.
+  ///
+  /// Enforcing this precision will fill any missing segment.
   MICRO;
 
   /// @return the number of segments this precision ensures to be accurate.
