@@ -27,7 +27,6 @@ package com.backpackcloud.versiontm;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /// A simple and lightweight three-segment version implementation.
 ///
@@ -119,9 +118,8 @@ public class Version implements Serializable, Comparable<Version> {
   /// @see #MAX_SEGMENT_VALUE
   /// @see #MIN_SEGMENT_VALUE
   public Version(int major, int minor, int micro) {
-    this(checkSegments(major, minor, micro,
-        () -> ((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR | (long) micro << SEGMENT_MICRO) | MICRO_PRECISION_MASK)
-    );
+    checkSegments(major, minor, micro);
+    this.value = (((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR | (long) micro << SEGMENT_MICRO) | MICRO_PRECISION_MASK);
   }
 
   /// Creates a version object with only the first two segments.
@@ -132,9 +130,8 @@ public class Version implements Serializable, Comparable<Version> {
   /// @see #MAX_SEGMENT_VALUE
   /// @see #MIN_SEGMENT_VALUE
   public Version(int major, int minor) {
-    this(checkSegments(major, minor, 0,
-        () -> ((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR) | MINOR_PRECISION_MASK)
-    );
+    checkSegments(major, minor, 0);
+    this.value = (((long) major << SEGMENT_MAJOR | (long) minor << SEGMENT_MINOR) | MINOR_PRECISION_MASK);
   }
 
   /// Creates a version object with only the first segment.
@@ -144,12 +141,11 @@ public class Version implements Serializable, Comparable<Version> {
   /// @see #MAX_SEGMENT_VALUE
   /// @see #MIN_SEGMENT_VALUE
   public Version(int major) {
-    this(checkSegments(major, 0, 0,
-        () -> ((long) major << SEGMENT_MAJOR) | MAJOR_PRECISION_MASK)
-    );
+    checkSegments(major, 0, 0);
+    this.value = (((long) major << SEGMENT_MAJOR) | MAJOR_PRECISION_MASK);
   }
 
-  private static long checkSegments(int major, int minor, int micro, Supplier<Long> supplier) {
+  private void checkSegments(int major, int minor, int micro) {
     if (major > MAX_SEGMENT_VALUE || major < MIN_SEGMENT_VALUE) {
       throw new InvalidSegmentException(major, Version.NULL);
     }
@@ -159,7 +155,6 @@ public class Version implements Serializable, Comparable<Version> {
     if (micro > MAX_SEGMENT_VALUE || micro < MIN_SEGMENT_VALUE) {
       throw new InvalidSegmentException(micro, new Version(major, minor));
     }
-    return supplier.get();
   }
 
   /// Returns the internal representation of this version, for storing purposes.
@@ -294,10 +289,6 @@ public class Version implements Serializable, Comparable<Version> {
       }
     }
 
-    return create(precision, values);
-  }
-
-  private static Version create(int precision, int[] values) {
     return switch (precision) {
       case 3 -> new Version(values[0], values[1], values[2]);
       case 2 -> new Version(values[0], values[1]);
