@@ -101,6 +101,11 @@ public class VersionTest {
   }
 
   @Test
+  public void testMaxValue() {
+    assertEquals(new Version(Version.MAX_SEGMENT_VALUE, Version.MAX_SEGMENT_VALUE, Version.MAX_SEGMENT_VALUE), new Version(Long.MAX_VALUE));
+  }
+
+  @Test
   public void testParsing() {
     assertEquals(new Version(1, 2, 3), Version.of("1.2.3"));
     assertEquals(new Version(9, 7, 10), Version.of("9.7.10"));
