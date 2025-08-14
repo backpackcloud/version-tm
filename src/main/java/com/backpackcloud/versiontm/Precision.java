@@ -49,4 +49,25 @@ public enum Precision {
     return ordinal();
   }
 
+  public Precision less() {
+    if (this == NONE || this == MAJOR) {
+      return this;
+    }
+    return fromSegments(segments() - 1);
+  }
+
+  public Precision more() {
+    if (this == MICRO) {
+      return this;
+    }
+    return fromSegments(segments() + 1);
+  }
+
+  public static Precision fromSegments(int segments) {
+    if (segments < 0 || segments > 3) {
+      throw new IllegalArgumentException("Invalid segments: " + segments);
+    }
+    return values()[segments];
+  }
+
 }

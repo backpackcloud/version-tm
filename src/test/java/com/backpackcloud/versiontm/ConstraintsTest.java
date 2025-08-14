@@ -27,17 +27,15 @@ package com.backpackcloud.versiontm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.function.Function;
-import java.util.function.Predicate;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConstraintsTest {
 
   @Test
   public void testDefaultConstraint() {
-    Helper helper = new Helper("", Constraints::equalTo, "1.2.3");
+    Helper helper = new Helper("", "1.2.3");
 
     helper.assertTrue("1.2.3");
 
@@ -52,7 +50,7 @@ public class ConstraintsTest {
 
   @Test
   public void testEqualTo() {
-    Helper helper = new Helper("=", Constraints::equalTo, "1.2.3");
+    Helper helper = new Helper("=", "1.2.3");
 
     helper.assertTrue("1.2.3");
 
@@ -67,7 +65,7 @@ public class ConstraintsTest {
 
   @Test
   public void testDifferentFrom() {
-    Helper helper = new Helper("!=", Constraints::differentFrom, "1.2.3");
+    Helper helper = new Helper("!=", "1.2.3");
 
     helper.assertFalse("1.2.3");
 
@@ -81,7 +79,7 @@ public class ConstraintsTest {
 
   @Test
   public void testGreaterThan() {
-    Helper helper = new Helper(">", Constraints::greaterThan, "1.2.3");
+    Helper helper = new Helper(">", "1.2.3");
 
     helper.assertTrue("1.2.4");
     helper.assertTrue("1.3.0");
@@ -96,7 +94,7 @@ public class ConstraintsTest {
 
   @Test
   public void testGreaterThanOrEqualToTo() {
-    Helper helper = new Helper(">=", Constraints::greaterThanOrEqualTo, "1.2.3");
+    Helper helper = new Helper(">=", "1.2.3");
 
     helper.assertTrue("1.2.4");
     helper.assertTrue("1.3.0");
@@ -111,7 +109,7 @@ public class ConstraintsTest {
 
   @Test
   public void testLessThan() {
-    Helper helper = new Helper("<", Constraints::lessThan, "1.2.3");
+    Helper helper = new Helper("<", "1.2.3");
 
     helper.assertFalse("1.2.4");
     helper.assertFalse("1.3.0");
@@ -126,7 +124,7 @@ public class ConstraintsTest {
 
   @Test
   public void testLessThanOrEqualToTo() {
-    Helper helper = new Helper("<=", Constraints::lessThanOrEqualTo, "1.2.3");
+    Helper helper = new Helper("<=", "1.2.3");
 
     helper.assertFalse("1.2.4");
     helper.assertFalse("1.3.0");
@@ -140,8 +138,8 @@ public class ConstraintsTest {
   }
 
   @Test
-  public void testPessimisticallyCompatibleWith() {
-    Helper helper = new Helper("~>", Constraints::pessimisticallyCompatibleWith, "1.3.2");
+  public void testAtLeastAtMinorLevel() {
+    Helper helper = new Helper("~>", "1.3.2");
 
     helper.assertTrue("1.3.2");
     helper.assertTrue("1.3.3");
@@ -166,8 +164,83 @@ public class ConstraintsTest {
   }
 
   @Test
+  public void testAtLeastAtMajorLevel() {
+    Helper helper = new Helper("~~>", "1.3.2");
+
+    helper.assertTrue("1.3.2");
+    helper.assertTrue("1.3.3");
+    helper.assertTrue("1.3.20");
+
+    helper.assertFalse("1.3.0");
+    helper.assertFalse("1.1.0");
+    helper.assertFalse("1.3");
+    helper.assertFalse("1.1");
+    helper.assertFalse("1");
+    helper.assertTrue("1.4.0");
+    helper.assertTrue("1.4");
+    helper.assertTrue("1.4.8");
+    helper.assertTrue("1.6");
+    helper.assertTrue("1.6.9");
+    helper.assertFalse("2");
+    helper.assertFalse("2.0");
+    helper.assertFalse("2.0.0");
+    helper.assertFalse("2.1.0");
+
+    helper.assertTrue("1.3.20", "1.3");
+    helper.assertTrue("1.3.20", "1");
+    helper.assertTrue("1.9", "1");
+    helper.assertFalse("2", "1");
+  }
+
+  @Test
+  public void testPriorToMinor() {
+    Helper helper = new Helper("<~", "3.4.6");
+
+    helper.assertFalse("3.4.6");
+    helper.assertTrue("3.4.5");
+    helper.assertTrue("3.4.4");
+    helper.assertTrue("3.4.0");
+    helper.assertTrue("3.4");
+
+    helper.assertFalse("3.3.6");
+    helper.assertFalse("3.2.4");
+    helper.assertFalse("3.2");
+    helper.assertFalse("3.1.8");
+    helper.assertFalse("3.1");
+    helper.assertFalse("3.0");
+    helper.assertFalse("3");
+
+    helper.assertFalse("2.2.2");
+    helper.assertFalse("2.2");
+    helper.assertFalse("2");
+  }
+
+  @Test
+  public void testPriorToMajor() {
+    Helper helper = new Helper("<~~", "3.4.6");
+
+    helper.assertFalse("3.4.6");
+    helper.assertTrue("3.4.5");
+    helper.assertTrue("3.4.4");
+    helper.assertTrue("3.4.0");
+    helper.assertTrue("3.4");
+
+    helper.assertTrue("3.3.6");
+    helper.assertTrue("3.2.4");
+    helper.assertTrue("3.2");
+    helper.assertTrue("3.1.8");
+    helper.assertTrue("3.1");
+    helper.assertTrue("3.0");
+    helper.assertTrue("3");
+
+    helper.assertFalse("2.2.2");
+    helper.assertFalse("2.2");
+    helper.assertFalse("2");
+  }
+
+  @Test
   public void testRange() {
-    Predicate<Version> range = Constraints.create("[1.2.3, 1.3.5]");
+    Constraint range = Constraint.create("1.2.3 |-| 1.3.5");
 
     assertTrue(range.test(new Version(1, 2, 3)));
     assertTrue(range.test(new Version(1, 2, 4)));
@@ -181,7 +254,7 @@ public class ConstraintsTest {
     assertFalse(range.test(new Version(1, 3, 6)));
     assertFalse(range.test(new Version(1, 4, 6)));
 
-    range = Constraints.create("(1.2.3, 1.3.5]");
+    range = Constraint.create("1.2.3 -| 1.3.5");
 
     assertTrue(range.test(new Version(1, 2, 4)));
     assertTrue(range.test(new Version(1, 2, 10)));
@@ -195,7 +268,7 @@ public class ConstraintsTest {
     assertFalse(range.test(new Version(1, 3, 6)));
     assertFalse(range.test(new Version(1, 4, 6)));
 
-    range = Constraints.create("[1.2.3, 1.3.5)");
+    range = Constraint.create("1.2.3 |- 1.3.5");
 
     assertTrue(range.test(new Version(1, 2, 3)));
     assertTrue(range.test(new Version(1, 2, 4)));
@@ -209,7 +282,7 @@ public class ConstraintsTest {
     assertFalse(range.test(new Version(1, 3, 6)));
     assertFalse(range.test(new Version(1, 4, 6)));
 
-    range = Constraints.create("(1.2.3, 1.3.5)");
+    range = Constraint.create("1.2.3 - 1.3.5");
 
     assertTrue(range.test(new Version(1, 2, 4)));
     assertTrue(range.test(new Version(1, 2, 10)));
@@ -223,7 +296,7 @@ public class ConstraintsTest {
     assertFalse(range.test(new Version(1, 3, 6)));
     assertFalse(range.test(new Version(1, 4, 6)));
 
-    range = Constraints.create("(1.2, 2.0)");
+    range = Constraint.create("1.2 - 2.0");
 
     assertTrue(range.test(new Version(1, 2, 4)));
     assertTrue(range.test(new Version(1, 2, 0)));
@@ -236,14 +309,38 @@ public class ConstraintsTest {
     assertFalse(range.test(new Version(2, 0, 0)));
   }
 
+  @Test
+  public void testFailure() {
+    Constraint constraint = Constraint.create(null);
+
+    assertFalse(constraint.test(new Version(1, 2, 3)));
+    assertFalse(constraint.test(new Version(1, 0, 0)));
+    assertFalse(constraint.test(null));
+    assertFalse(constraint.test(Version.NULL));
+
+    constraint = Constraint.create("");
+
+    assertFalse(constraint.test(new Version(1, 2, 3)));
+    assertFalse(constraint.test(new Version(1, 0, 0)));
+    assertFalse(constraint.test(null));
+    assertFalse(constraint.test(Version.NULL));
+
+    constraint = Constraint.create("  ");
+
+    assertFalse(constraint.test(new Version(1, 2, 3)));
+    assertFalse(constraint.test(new Version(1, 0, 0)));
+    assertFalse(constraint.test(null));
+    assertFalse(constraint.test(Version.NULL));
+
+    assertThrows(IllegalArgumentException.class, () -> Constraint.create("{1.2.3}"));
+  }
+
   static class Helper {
     private final String operator;
-    private final Function<Version, Predicate<Version>> function;
     private final String defaultReference;
 
-    Helper(String operator, Function<Version, Predicate<Version>> function, String defaultReference) {
+    Helper(String operator, String defaultReference) {
       this.operator = operator;
-      this.function = function;
       this.defaultReference = defaultReference;
     }
 
@@ -256,13 +353,11 @@ public class ConstraintsTest {
     }
 
     void assertTrue(String test, String reference) {
-      Assertions.assertTrue(function.apply(Version.of(reference)).test(Version.of(test)));
-      Assertions.assertTrue(Constraints.create(String.format("%s %s", operator, reference)).test(Version.of(test)));
+      Assertions.assertTrue(Constraint.create(String.format("%s %s", operator, reference)).test(Version.of(test)));
     }
 
     void assertFalse(String test, String reference) {
-      Assertions.assertFalse(function.apply(Version.of(reference)).test(Version.of(test)));
-      Assertions.assertFalse(Constraints.create(String.format("%s %s", operator, reference)).test(Version.of(test)));
+      Assertions.assertFalse(Constraint.create(String.format("%s %s", operator, reference)).test(Version.of(test)));
     }
 
   }
