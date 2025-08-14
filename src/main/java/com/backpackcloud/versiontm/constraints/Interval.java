@@ -50,7 +50,7 @@ public enum Interval {
       return new Range(Limit.exclusive(lower), Limit.inclusive(upper));
     }
   },
-  OPEN_OPEN("-") {
+  OPEN_OPEN("--") {
     @Override
     public Constraint createConstraint(Version lower, Version upper) {
       return new Range(Limit.exclusive(lower), Limit.exclusive(upper));

@@ -282,7 +282,7 @@ public class ConstraintsTest {
     assertFalse(range.test(new Version(1, 3, 6)));
     assertFalse(range.test(new Version(1, 4, 6)));
 
-    range = Constraint.create("1.2.3 - 1.3.5");
+    range = Constraint.create("1.2.3 -- 1.3.5");
 
     assertTrue(range.test(new Version(1, 2, 4)));
     assertTrue(range.test(new Version(1, 2, 10)));
@@ -296,7 +296,7 @@ public class ConstraintsTest {
     assertFalse(range.test(new Version(1, 3, 6)));
     assertFalse(range.test(new Version(1, 4, 6)));
 
-    range = Constraint.create("1.2 - 2.0");
+    range = Constraint.create("1.2 -- 2.0");
 
     assertTrue(range.test(new Version(1, 2, 4)));
     assertTrue(range.test(new Version(1, 2, 0)));
