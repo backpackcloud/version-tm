@@ -208,6 +208,35 @@ public class Version implements Serializable, Comparable<Version> {
     return Precision.NONE;
   }
 
+  public Version truncate(Precision newPrecision) {
+    Precision thisPrecision = this.precision();
+    Precision effectivePrecision = thisPrecision.segments() >= newPrecision.segments() ? newPrecision : Precision.fromSegments(
+      Math.min(thisPrecision.segments(), newPrecision.segments() - 1)
+    );
+    return expand(effectivePrecision);
+  }
+
+  public Version expand(Precision newPrecision) {
+    if (newPrecision == this.precision()) {
+      return this;
+    }
+    return switch (newPrecision) {
+      case NONE -> Version.NULL;
+      case MAJOR -> new Version(major());
+      case MINOR -> new Version(major(), minor());
+      case MICRO -> new Version(major(), minor(), micro());
+    };
+  }
+
+  public Version next() {
+    return switch (precision()) {
+      case NONE -> Version.NULL;
+      case MAJOR -> new Version(major() + 1);
+      case MINOR -> new Version(major(), minor() + 1);
+      case MICRO -> new Version(major(), minor(), micro() + 1);
+    };
+  }
+
   private int segment(int segmentFactor) {
     return (int) ((this.value >>> segmentFactor) & ~((~0) << SEGMENT_SIZE));
   }
