@@ -77,10 +77,11 @@ public enum Precision {
   /// @return the Precision object that has the exact number of segments given.
   /// @throws IllegalArgumentException if the desired number os segments can't be matched by any Precision
   public static Precision fromSegments(int segments) {
-    if (segments < 0 || segments > 3) {
+    Precision[] values = values();
+    if (segments < 0 || segments >= values.length) {
       throw new IllegalArgumentException("Invalid segments: " + segments);
     }
-    return values()[segments];
+    return values[segments];
   }
 
 }
